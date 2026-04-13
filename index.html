@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prayer Times - Chiplun</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #10b981 100%);
+           /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        */  min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .location {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .date-display {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .prayer-grid {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .prayer-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .prayer-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .prayer-time {
+            font-size: 20px;
+            color: #667eea;
+            font-weight: 700;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🕌 Prayer Times</h1>
+        <div class="location">Chiplun, Maharashtra, India</div>
+        
+        <div id="date-display" class="date-display"></div>
+        
+        <div id="content">
+            <div class="loading">Loading prayer times...</div>
+        </div>
+    </div>
+
+    <!-- Add this before </div> that closes container -->
+<div style="text-align: center; margin-top: 20px; color: #999; font-size: 14px;">
+    Built by Asad Akhtar Fakir
+</div>
+
+    <script>
+        // API: Aladhan - Free Islamic API
+        const API_URL = 'http://api.aladhan.com/v1/timingsByCity';
+        
+        // Your location
+        const CITY = 'Mumbai';
+        const COUNTRY = 'India';
+        
+        // Function to fetch prayer times
+        async function getPrayerTimes() {
+            try {
+                // Make API request
+                const response = await fetch(`${API_URL}?city=${CITY}&country=${COUNTRY}&method=2`);
+                
+                // Convert response to JSON
+                const data = await response.json();
+                
+                // Check if successful
+                if (data.code === 200) {
+                    displayPrayerTimes(data.data);
+                } else {
+                    showError('Could not fetch prayer times');
+                }
+                
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+        
+        // Function to display prayer times on page
+        function displayPrayerTimes(data) {
+            const timings = data.timings;
+            const date = data.date;
+            
+            // Display Hijri and Gregorian dates
+            const dateDisplay = document.getElementById('date-display');
+            dateDisplay.innerHTML = `
+                <div><strong>${date.hijri.day} ${date.hijri.month.en} ${date.hijri.year} AH</strong></div>
+                <div>${date.readable}</div>
+            `;
+            
+            // Prayer names we want to show
+            const prayers = [
+                { name: 'Fajr', key: 'Fajr' },
+                { name: 'Sunrise', key: 'Sunrise' },
+                { name: 'Dhuhr', key: 'Dhuhr' },
+                { name: 'Asr', key: 'Asr' },
+                { name: 'Maghrib', key: 'Maghrib' },
+                { name: 'Isha', key: 'Isha' }
+            ];
+            
+            // Build HTML for prayer times
+            let html = '<div class="prayer-grid">';
+            
+            prayers.forEach(prayer => {
+                html += `
+                    <div class="prayer-item">
+                        <span class="prayer-name">${prayer.name}</span>
+                        <span class="prayer-time">${timings[prayer.key]}</span>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            // Put it on the page
+            document.getElementById('content').innerHTML = html;
+        }
+        
+        // Function to show errors
+        function showError(message) {
+            document.getElementById('content').innerHTML = `
+                <div class="error">${message}</div>
+            `;
+        }
+        
+        // Run when page loads
+        getPrayerTimes();
+        
+    </script>
+</body>
+</html>
